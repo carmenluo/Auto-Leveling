@@ -1,5 +1,7 @@
 #include <Wire.h>
 #include <Servo.h>
+
+#include <AFMotor.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_ADXL345_U.h>
 
@@ -7,7 +9,7 @@
 Adafruit_ADXL345_Unified accel = Adafruit_ADXL345_Unified(12345);
 Servo myservo;  // create servo object to control a servo
 // twelve servo objects can be created on most boards
-
+AF_DCMotor motor(4);
 int pos = 0;
 void displaySensorDetails(void)
 {
@@ -117,6 +119,11 @@ void setup(void)
   while (!Serial); // for Leonardo/Micro/Zero
 #endif
 myservo.attach(9); 
+
+   Serial.begin(9600); // baud rate
+    Serial.println("Motor test!");
+  
+  motor.setSpeed(200);  
   Serial.begin(9600);
   Serial.println("Accelerometer Test"); Serial.println("");
   
@@ -148,24 +155,31 @@ void loop(void)
   /* Get a new sensor event */ 
   sensors_event_t event; 
   accel.getEvent(&event);
- 
+ Serial.print("Servo reading");Serial.println(myservo.read());
   /* Display the results (acceleration is measured in m/s^2) */
   Serial.print("X: "); Serial.print(event.acceleration.x); Serial.print("  ");
   Serial.print("Y: "); Serial.print(event.acceleration.y); Serial.print("  ");
   Serial.print("Z: "); Serial.print(event.acceleration.z); Serial.print("  ");Serial.println("m/s^2 ");
-  delay(1000);
+  delay(150);
   int angle=5;
   if (0.5<event.acceleration.x&&event.acceleration.x<9){
      for (pos = 0; pos <= 180; pos += 1) { // goes from 0 degrees to 180 degrees
     // in steps of 1 degree
     myservo.write(pos);              // tell servo to go to position in variable 'pos'
     delay(15);                       // waits 15ms for the servo to reach the position
+     motor.run(FORWARD);      // turn it on going forward
+  delay(100);
+  motor.run(RELEASE);
+  delay(100);
   }}
   if (-9<event.acceleration.x&&event.acceleration.x<-0.5){
      for (pos = 180; pos >= 0; pos -= 1) { // goes from 180 degrees to 0 degrees
     myservo.write(pos);              // tell servo to go to position in variable 'pos'
     delay(15);                       // waits 15ms for the servo to reach the position
-  
+  motor.run(BACKWARD);     // the other way
+  delay(100);
+  motor.run(RELEASE);
+  delay(100);
      }
   }
   }
